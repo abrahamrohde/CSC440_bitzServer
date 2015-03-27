@@ -32,4 +32,8 @@ public class ConnectedClient
 	{
 		return this.input.nextLine();
 	}
+	public Socket getSocket()
+	{
+		return this.theSocket;
+	}
 }
