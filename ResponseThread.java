@@ -1,10 +1,8 @@
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.Scanner;
 
 
@@ -12,7 +10,9 @@ public class ResponseThread extends Thread
 {
 	ConnectedClient theClient;
 	LinkedList<ConnectedClient> allTheClients;
-
+	private static String theFileName = "";
+	private static int theSize = -1;
+	
 	public ResponseThread(ConnectedClient theClient)
 	{
 		this.theClient = theClient;
@@ -21,35 +21,40 @@ public class ResponseThread extends Thread
 	
 	public void run()
 	{
-		this.theClient.sendMessage("Do you want to share or download?");
-		String theAnswer = this.theClient.getMessage();
-		this.theClient.sendMessage(theAnswer);
-		try
+		//is the client sharing or getting?
+		String clientMode = this.theClient.getMessage();
+		
+		if(clientMode.equals("share"))
 		{
-			DataInputStream dIn = new DataInputStream(this.theClient.getSocket().getInputStream());
-
-			int length = dIn.readInt();                    // read length of incoming message
-			byte[] message = null;
-			if(length>0) 
-			{
-				message = new byte[length];
-				dIn.readFully(message, 0, message.length); // read the message
-			}
-			/*
-			String extension = "";
-			for(int i = 0; i < 200; i++)
-			{
-				extension += message[i];
-			}
-			*/
-			Random r = new Random(); //Just for now in case you want to send two files
-			File theClone = new File("C:/Users/Abe/Documents/GitHub/CSC440_bitzServer/myFiles/clone" + r.nextInt());
-			FileOutputStream fos = new FileOutputStream(theClone);
-			fos.write(message);
-			fos.close();
+			//Wait for the client to tell us the name of the file he is about to send
+			ResponseThread.theFileName = this.theClient.getMessage();
+			ResponseThread.theSize = Integer.parseInt(this.theClient.getMessage());
+			this.theClient.initBytes(theSize, true);
+			System.out.println("Sharing Mode");
+			
+			//we need to request bytes from our connectClient that
+			//other connected clients need
+			//*****Write Code HERE****
 		}
-		catch(Exception ex)
+		else
 		{
+			//do get stuff
+			System.out.println("Getting Mode");
+			
+			//send the client the name of the file
+			this.theClient.sendMessage(ResponseThread.theFileName);
+			this.theClient.sendMessage("" + ResponseThread.theSize);
+			this.theClient.initBytes(theSize, false);
+			
+			//wait for client requests for receiving a byte
+			String whichByte = this.theClient.getMessage();
+			for(ConnectedClient cc : Driver.theNotBusyClients)
+			{
+				if(cc != this.theClient && cc.hasByte(Integer.parseInt(whichByte)))
+				{
+					//share the byte with this guy
+				}
+			}
 			
 		}
 	}
