@@ -35,6 +35,11 @@ public class ResponseThread extends Thread
 			//we need to request bytes from our connectClient that
 			//other connected clients need
 			//*****Write Code HERE****
+			
+			Driver.theNotBusyClients.add(this.theClient);
+			
+			
+			
 		}
 		else
 		{
@@ -47,12 +52,33 @@ public class ResponseThread extends Thread
 			this.theClient.initBytes(theSize, false);
 			
 			//wait for client requests for receiving a byte
-			String whichByte = this.theClient.getMessage();
-			for(ConnectedClient cc : Driver.theNotBusyClients)
+			String whichByte = null; 
+			Boolean b = true;
+			while(b)
 			{
-				if(cc != this.theClient && cc.hasByte(Integer.parseInt(whichByte)))
+				whichByte = this.theClient.getMessage();
+				if(Integer.parseInt(whichByte) != -1)
 				{
-					//share the byte with this guy
+					for(ConnectedClient cc : Driver.theNotBusyClients)
+					{
+						if(cc != this.theClient && cc.hasByte(Integer.parseInt(whichByte)))
+						{
+							//share the byte with this guy
+							
+							try
+							{
+								this.theClient.sendMessage(cc.getByte(whichByte) + "");
+							}
+							catch (Exception e) 
+							{
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				else
+				{
+					b = false;
 				}
 			}
 			

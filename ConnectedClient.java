@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
@@ -61,5 +62,17 @@ public class ConnectedClient
 	public int readByte() throws Exception
 	{
 		return this.theSocket.getInputStream().read();
+	}
+	public int getByte(String s) 
+	{
+		this.output.println(s);
+		try 
+		{
+			return this.theSocket.getInputStream().read();
+		} 
+		catch (IOException e) 
+		{
+			return -1;
+		}
 	}
 }
